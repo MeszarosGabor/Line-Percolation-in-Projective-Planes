@@ -1,12 +1,14 @@
 //Simulation of the line percolation process on a given projective plane with fixed infection parameter and initially infected set.
 #include <fstream>
 #include <list>
+#include <stdlib.h>    
+#include <time.h> 
 #include <unordered_set>
 #include <vector>
 
 #include "projective_plane.h"
 
-int fastSimulatePercolation(
+int simulatePercolationWithFixedInitialSet(
 						ProjectivePlane & plane,
 						int infectionRate, 
 						std::unordered_set<int> & initialInfectedSet,
@@ -32,6 +34,7 @@ int fastSimulatePercolation(
 	while (!actInfectedPoints.empty())
 	{
 		++round;
+		//ROUND STARTS
 		for (std::unordered_set<int>::iterator pointIt = actInfectedPoints.begin(); pointIt != actInfectedPoints.end(); ++pointIt)
 		{
 			isPointInfected[*pointIt] = 1;
@@ -58,10 +61,65 @@ int fastSimulatePercolation(
 		{
 			if (logging)
 			logFile << "Percolation ended in " << round << "rounds\n";
+			logFile.close();
 			return round;
 		}
+	//ROUND ENDS
 	}
 	if (logging)
+	{
 		logFile << "Percolation stopped in round " << round <<", the initial set does not percolate\n";
+		logFile.close();
+	}
 	return -1;
+}
+
+std::unordered_set<int>  randomSet(
+									ProjectivePlane & plane,
+									int minSize,
+									int maxSize
+								)
+{
+	std::unordered_set<int> points;
+	int setSize = rand() % (maxSize - minSize + 1) + minSize;
+	while (points.size() < setSize)
+				points.insert(rand() % (plane.size_));
+	return points;
+}
+
+int randomSetSimulation(
+							ProjectivePlane & plane,
+							int infectionRate,
+							int nrOfTests
+						)
+{
+	srand (time(NULL));
+	int longestPercolation = -1;
+	std::unordered_set<int> slowestInfectedPoints;
+	for (int n = 0; n < nrOfTests; ++n)
+	{
+		std::unordered_set<int> initialInfectedSet = randomSet(
+																plane,
+																infectionRate * (infectionRate + 1) / 2,
+																infectionRate * (infectionRate + 1)
+																);
+		int actPercolationLength = simulatePercolationWithFixedInitialSet(plane, infectionRate,initialInfectedSet);
+		if (actPercolationLength > longestPercolation)
+		{
+			slowestInfectedPoints = initialInfectedSet;
+			longestPercolation = actPercolationLength; 
+		}
+	}
+	std::ofstream myfile;
+	std::string fileName = "order_" + std::to_string(plane.order_) + "_rate_" + std::to_string(infectionRate) + "_length_" + std::to_string(longestPercolation) + ".txt";
+	myfile.open(fileName.c_str());
+	myfile << "#" << " order: " << std::to_string(plane.order_) << std::endl;
+	myfile << "#" << " rate: " << std::to_string(infectionRate) << std::endl;
+	myfile << "#" << " length of the slowest percolation: " << longestPercolation<< std::endl;
+	myfile << "#" << " size of initial infected set: " << slowestInfectedPoints.size()<< std::endl;
+	myfile << "#" << " nrOfTests: " << nrOfTests << std::endl;
+	for (std::unordered_set<int>::iterator it = slowestInfectedPoints.begin(); it != slowestInfectedPoints.end(); ++it)
+		myfile << *it << " " << plane.idToTriple(*it).toString() << std::endl;
+	myfile.close();
+	return longestPercolation;
 }

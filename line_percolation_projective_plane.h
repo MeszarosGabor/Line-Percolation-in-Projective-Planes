@@ -34,7 +34,6 @@ int simulatePercolationWithFixedInitialSet(
 	while (!actInfectedPoints.empty())
 	{
 		++round;
-		//ROUND STARTS
 		for (std::unordered_set<int>::iterator pointIt = actInfectedPoints.begin(); pointIt != actInfectedPoints.end(); ++pointIt)
 		{
 			isPointInfected[*pointIt] = 1;
@@ -64,7 +63,6 @@ int simulatePercolationWithFixedInitialSet(
 			logFile.close();
 			return round;
 		}
-	//ROUND ENDS
 	}
 	if (logging)
 	{

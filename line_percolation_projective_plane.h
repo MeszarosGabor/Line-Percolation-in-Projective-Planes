@@ -12,14 +12,16 @@ int simulatePercolationWithFixedInitialSet(
 						ProjectivePlane & plane,
 						int infectionRate, 
 						std::unordered_set<int> & initialInfectedSet,
-						bool logging = false
+						bool logging = false, 
+						std::string logFileName = ""
 						)
 {
 	std::ofstream logFile;
 	if (logging)
 	{
-		std::string fileName = "line_percolation_order_" + std::to_string(plane.order_) + "_rate_" + std::to_string(infectionRate) + ".txt";
-		logFile.open(fileName.c_str());
+		if (logFileName == "")
+			logFileName = "line_percolation_order_" + std::to_string(plane.order_) + "_rate_" + std::to_string(infectionRate) + ".txt";
+		logFile.open(logFileName.c_str());
 		logFile << "Percolation on the PG(2," << plane.order_ << ") with infection rate " << infectionRate << std::endl;
 	}
 	std::vector<int> isPointInfected(plane.size_ , 0);
@@ -59,7 +61,7 @@ int simulatePercolationWithFixedInitialSet(
 		if (oldInfectedPointsCounter + actInfectedPoints.size() == plane.size_)
 		{
 			if (logging)
-			logFile << "Percolation ended in " << round << "rounds\n";
+			logFile << "Percolation ended in " << round << " rounds\n";
 			logFile.close();
 			return round;
 		}
@@ -111,8 +113,8 @@ int randomSetSimulation(
 	std::ofstream myfile;
 	std::string fileName = "order_" + std::to_string(plane.order_) + "_rate_" + std::to_string(infectionRate) + "_length_" + std::to_string(longestPercolation) + ".txt";
 	myfile.open(fileName.c_str());
-	myfile << "#" << " order: " << std::to_string(plane.order_) << std::endl;
-	myfile << "#" << " rate: " << std::to_string(infectionRate) << std::endl;
+	myfile << "#" << " order:\n" << std::to_string(plane.order_) << std::endl;
+	myfile << "#" << " rate:\n" << std::to_string(infectionRate) << std::endl;
 	myfile << "#" << " length of the slowest percolation: " << longestPercolation<< std::endl;
 	myfile << "#" << " size of initial infected set: " << slowestInfectedPoints.size()<< std::endl;
 	myfile << "#" << " nrOfTests: " << nrOfTests << std::endl;
@@ -120,4 +122,47 @@ int randomSetSimulation(
 		myfile << *it << " " << plane.idToTriple(*it).toString() << std::endl;
 	myfile.close();
 	return longestPercolation;
+}
+
+// this functions reads a previously created set and simulates percolation with that initial set
+int simulatePercolationOnGivenInitialSet
+						(
+							std::string inputFileName,
+							bool logging = false,
+							std::string logFileName = ""
+						)
+{
+	std::unordered_set<int> infectedPoints;
+	std::string line;
+	std::ifstream myFile;
+	myFile.open(inputFileName.c_str());
+	if (myFile.is_open())
+	{
+		int order, infectionRate, lineCount = 1;
+		while(!myFile.eof())
+		{
+			std::getline(myFile,line);
+			if (line.empty() || line[0] == '#'){continue;}
+			int id = 0;
+			std::string::iterator it = line.begin();
+			while (it != line.end() && *it != ' ')
+			{
+				id *= 10;
+				id += (*it - '0');
+				++it;
+			}
+			if (lineCount == 1)
+				order = id;
+			else if (lineCount == 2)
+				infectionRate = id;
+			else
+				infectedPoints.insert(id);
+			++lineCount;
+		}
+		ProjectivePlane plane(order);
+		return simulatePercolationWithFixedInitialSet(plane, infectionRate, infectedPoints, logging, logFileName);
+	}
+	else 
+	{std::cout << "could not open file " << inputFileName << std::endl;}
+	myFile.close();
 }

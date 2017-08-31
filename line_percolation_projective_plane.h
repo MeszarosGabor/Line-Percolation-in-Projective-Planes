@@ -90,7 +90,9 @@ std::unordered_set<int>  randomSet(
 int randomSetSimulation(
 							ProjectivePlane & plane,
 							int infectionRate,
-							int nrOfTests
+							int nrOfTests, 
+							bool logging = true,
+							std::string logFileName = ""
 						)
 {
 	srand (time(NULL));
@@ -103,24 +105,28 @@ int randomSetSimulation(
 																infectionRate * (infectionRate + 1) / 2,
 																infectionRate * (infectionRate + 1)
 																);
-		int actPercolationLength = simulatePercolationWithFixedInitialSet(plane, infectionRate,initialInfectedSet);
+		int actPercolationLength = simulatePercolationWithFixedInitialSet(plane, infectionRate,initialInfectedSet,false);
 		if (actPercolationLength > longestPercolation)
 		{
 			slowestInfectedPoints = initialInfectedSet;
 			longestPercolation = actPercolationLength; 
 		}
 	}
-	std::ofstream myfile;
-	std::string fileName = "order_" + std::to_string(plane.order_) + "_rate_" + std::to_string(infectionRate) + "_length_" + std::to_string(longestPercolation) + ".txt";
-	myfile.open(fileName.c_str());
-	myfile << "#" << " order:\n" << std::to_string(plane.order_) << std::endl;
-	myfile << "#" << " rate:\n" << std::to_string(infectionRate) << std::endl;
-	myfile << "#" << " length of the slowest percolation: " << longestPercolation<< std::endl;
-	myfile << "#" << " size of initial infected set: " << slowestInfectedPoints.size()<< std::endl;
-	myfile << "#" << " nrOfTests: " << nrOfTests << std::endl;
-	for (std::unordered_set<int>::iterator it = slowestInfectedPoints.begin(); it != slowestInfectedPoints.end(); ++it)
-		myfile << *it << " " << plane.idToTriple(*it).toString() << std::endl;
-	myfile.close();
+	if (logging)
+	{
+		std::ofstream logFile;
+		if (logFileName == "")
+			logFileName = "line_percolation_random_sim__order_" + std::to_string(plane.order_) + "_rate_" + std::to_string(infectionRate) + ".txt";
+		logFile.open(logFileName.c_str());
+		logFile << "#" << " order:\n" << std::to_string(plane.order_) << std::endl;
+		logFile << "#" << " rate:\n" << std::to_string(infectionRate) << std::endl;
+		logFile << "#" << " length of the slowest percolation: " << longestPercolation<< std::endl;
+		logFile << "#" << " size of initial infected set: " << slowestInfectedPoints.size()<< std::endl;
+		logFile << "#" << " nrOfTests: " << nrOfTests << std::endl;
+		for (std::unordered_set<int>::iterator it = slowestInfectedPoints.begin(); it != slowestInfectedPoints.end(); ++it)
+			logFile << *it << " " << plane.idToTriple(*it).toString() << std::endl;
+		logFile.close();
+	}
 	return longestPercolation;
 }
 
@@ -134,14 +140,14 @@ int simulatePercolationOnGivenInitialSet
 {
 	std::unordered_set<int> infectedPoints;
 	std::string line;
-	std::ifstream myFile;
-	myFile.open(inputFileName.c_str());
-	if (myFile.is_open())
+	std::ifstream logFile;
+	logFile.open(inputFileName.c_str());
+	if (logFile.is_open())
 	{
 		int order, infectionRate, lineCount = 1;
-		while(!myFile.eof())
+		while(!logFile.eof())
 		{
-			std::getline(myFile,line);
+			std::getline(logFile,line);
 			if (line.empty() || line[0] == '#'){continue;}
 			int id = 0;
 			std::string::iterator it = line.begin();
@@ -164,5 +170,5 @@ int simulatePercolationOnGivenInitialSet
 	}
 	else 
 	{std::cout << "could not open file " << inputFileName << std::endl;}
-	myFile.close();
+	logFile.close();
 }

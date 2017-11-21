@@ -40,7 +40,7 @@ Triple ProjectivePlane::idToTriple(int id)
 		return Triple(id / order_, id % order_, 1);
 	else if (order_ * order_ <= id && id <= order_ * order_ + order_ - 1)
 		return Triple(id - order_ * order_, 1,0);
-	else 
+	else
 		return Triple(1,0,0);
 }
 

@@ -75,10 +75,10 @@ int simulatePercolationWithFixedInitialSet(
 }
 
 std::unordered_set<int>  randomSet(
-									ProjectivePlane & plane,
-									int minSize,
-									int maxSize
-								)
+				ProjectivePlane & plane,
+				int minSize,
+				int maxSize
+				)
 {
 	std::unordered_set<int> points;
 	int setSize = rand() % (maxSize - minSize + 1) + minSize;
@@ -88,12 +88,12 @@ std::unordered_set<int>  randomSet(
 }
 
 int randomSetSimulation(
-							ProjectivePlane & plane,
-							int infectionRate,
-							int nrOfTests, 
-							bool logging = true,
-							std::string logFileName = ""
-						)
+			ProjectivePlane & plane,
+			int infectionRate,
+			int nrOfTests, 
+			bool logging = true,
+			std::string logFileName = ""
+			)
 {
 	srand (time(NULL));
 	int longestPercolation = -1;
@@ -101,10 +101,10 @@ int randomSetSimulation(
 	for (int n = 0; n < nrOfTests; ++n)
 	{
 		std::unordered_set<int> initialInfectedSet = randomSet(
-																plane,
-																infectionRate * (infectionRate + 1) / 2,
-																infectionRate * (infectionRate + 1)
-																);
+									plane,
+									infectionRate * (infectionRate + 1) / 2,
+									infectionRate * (infectionRate + 1)
+									);
 		int actPercolationLength = simulatePercolationWithFixedInitialSet(plane, infectionRate,initialInfectedSet,false);
 		if (actPercolationLength > longestPercolation)
 		{
@@ -132,11 +132,11 @@ int randomSetSimulation(
 
 // this functions reads a previously created set and simulates percolation with that initial set
 int simulatePercolationOnGivenInitialSet
-						(
-							std::string inputFileName,
-							bool logging = false,
-							std::string logFileName = ""
-						)
+					(
+					std::string inputFileName,
+					bool logging = false,
+					std::string logFileName = ""
+					)
 {
 	std::unordered_set<int> infectedPoints;
 	std::string line;
